@@ -10,6 +10,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.os.Build
 import android.provider.MediaStore
+import android.view.Gravity
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.ailoveyou.trashrecognition.R
@@ -22,6 +23,7 @@ class ImageClassifierActivity : AppCompatActivity() {
     private lateinit var mBitmap: Bitmap
 
     private val mGalleryRequestCode = 2
+    private val mCameraRequestCode = 0
 
     private val mInputSize = 224
     private val mModelPath = "model_unquant.tflite"
@@ -41,7 +43,10 @@ class ImageClassifierActivity : AppCompatActivity() {
             mBitmap = Bitmap.createScaledBitmap(mBitmap, mInputSize, mInputSize, true)
             iv_1.setImageBitmap(mBitmap)
         }
-
+        img_pick_btn.setOnClickListener {
+            val callCameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            startActivityForResult(callCameraIntent,mCameraRequestCode)
+        }
 
         img_pick_btn4.setOnClickListener {
             val callGalleryIntent = Intent(Intent.ACTION_PICK)
@@ -58,27 +63,37 @@ class ImageClassifierActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == Activity.RESULT_OK && data != null) {
-            if (requestCode == mGalleryRequestCode) {
-                if (data != null) {
-                    val uri = data.data
-
-                    try {
-                        mBitmap = MediaStore.Images.Media.getBitmap(this.contentResolver, uri)
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    }
-
-                    println("Success!!!")
-                    mBitmap = scaleImage(mBitmap)
-                    iv_1.setImageBitmap(mBitmap)
-
-                }
+        if(requestCode == mCameraRequestCode){
+            if(resultCode == Activity.RESULT_OK && data != null) {
+                mBitmap = data.extras!!.get("data") as Bitmap
+                mBitmap = scaleImage(mBitmap)
+                val toast = Toast.makeText(this, ("Image crop to: w= ${mBitmap.width} h= ${mBitmap.height}"), Toast.LENGTH_LONG)
+                toast.setGravity(Gravity.BOTTOM, 0, 20)
+                toast.show()
+                iv_1.setImageBitmap(mBitmap)
+                textView.text= "Your photo image set now."
             } else {
-                Toast.makeText(this, "Unrecognized request code", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Camera cancel.", Toast.LENGTH_LONG).show()
+            }
+        } else if(requestCode == mGalleryRequestCode) {
+            if (data != null) {
+                val uri = data.data
+
+                try {
+                    mBitmap = MediaStore.Images.Media.getBitmap(this.contentResolver, uri)
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+
+                println("Success!!!")
+                mBitmap = scaleImage(mBitmap)
+                iv_1.setImageBitmap(mBitmap)
 
             }
+        } else {
+            Toast.makeText(this, "Unrecognized request code", Toast.LENGTH_LONG).show()
         }
+
     }
 
         private fun scaleImage(bitmap: Bitmap?): Bitmap {
