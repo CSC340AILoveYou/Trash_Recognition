@@ -26,8 +26,8 @@ class ImageClassifierActivity : AppCompatActivity() {
     private val mCameraRequestCode = 0
 
     private val mInputSize = 224
-    private val mModelPath = "model_unquant.tflite"
-    private val mLabelPath = "labels.txt"
+    private val mModelPath = "trash_model4.tflite"
+    private val mLabelPath = "trash_labels.txt"
     private val mSamplePath = "soybean.jpg"
 
 
